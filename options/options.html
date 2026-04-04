@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSA Coach — Settings</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #e8e8e8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #888;
+      font-weight: 600;
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #c8c8c8;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      background: #242424;
+      border: 1px solid #3a3a3a;
+      border-radius: 7px;
+      color: #e8e8e8;
+      font-size: 13px;
+      padding: 8px 11px;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #5b8fff;
+    }
+
+    input[type="number"] { width: 100px; }
+
+    .save-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    button {
+      background: #5b8fff;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 22px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button:hover { background: #4a7aee; }
+
+    #saved-msg {
+      font-size: 13px;
+      color: #00b8a3;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #saved-msg.visible { opacity: 1; }
+
+    .setup-guide {
+      background: #242424;
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 32px;
+    }
+
+    .setup-guide h3 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #c8c8c8;
+    }
+
+    .setup-guide ol {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .setup-guide li {
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.5;
+    }
+
+    .setup-guide code {
+      font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 12px;
+      background: #2e2e2e;
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #e8e8e8;
+    }
+
+    .intervals-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .intervals-row .field { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>&#129302; DSA Coach Settings</h1>
+
+  <div class="section">
+    <div class="section-title">API Keys</div>
+
+    <div class="field">
+      <label for="anthropic-key">Anthropic API Key</label>
+      <input id="anthropic-key" type="password" placeholder="sk-ant-…" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label for="notion-token">Notion Integration Token</label>
+      <input id="notion-token" type="password" placeholder="secret_…" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label for="notion-db-id">Notion Database ID</label>
+      <input id="notion-db-id" type="text" placeholder="32-character database ID" autocomplete="off" />
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Spaced Repetition Intervals</div>
+    <div class="intervals-row">
+      <div class="field">
+        <label for="interval-clean">Clean solve (days)</label>
+        <input id="interval-clean" type="number" min="1" max="365" value="14" />
+      </div>
+      <div class="field">
+        <label for="interval-hints">Hints needed (days)</label>
+        <input id="interval-hints" type="number" min="1" max="365" value="7" />
+      </div>
+      <div class="field">
+        <label for="interval-failed">Failed (days)</label>
+        <input id="interval-failed" type="number" min="1" max="365" value="3" />
+      </div>
+    </div>
+  </div>
+
+  <div class="save-row">
+    <button id="save-btn">Save</button>
+    <span id="saved-msg">Saved!</span>
+  </div>
+
+  <div class="setup-guide">
+    <h3>Setup Guide</h3>
+    <ol>
+      <li>Get your Anthropic API key from <code>console.anthropic.com</code></li>
+      <li>Get your Notion integration token from <code>notion.so/my-integrations</code></li>
+      <li>Create an integration, then share your DSA database with it</li>
+      <li>Your DB ID is the 32-character string in the database URL:
+        <br><code>notion.so/username/{DB_ID}?v=…</code></li>
+      <li>Make sure your Notion database has these columns:
+        <br><code>Problem</code> (title), <code>LC #</code> (number), <code>Type</code> (select),
+        <code>Pattern</code> (multi-select), <code>Difficulty</code> (select),
+        <code>Last Result</code> (select), <code>Last Done</code> (date),
+        <code>Interval (days)</code> (number), <code>Times Reviewed</code> (number),
+        <code>Notes</code> (rich text)
+      </li>
+    </ol>
+  </div>
+</div>
+<script src="options.js"></script>
+</body>
+</html>

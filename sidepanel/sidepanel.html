@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSA Coach</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- Global API key banner -->
+  <div id="no-key-banner" class="banner error hidden">
+    <span>Add your API key in</span>
+    <a id="settings-link" href="#">Settings</a>
+  </div>
+
+  <!-- Header (shown during active session and summary) -->
+  <div id="session-header" class="header hidden">
+    <div class="header-title">
+      <span class="logo">&#129302;</span>
+      <span id="header-problem-title">DSA Coach</span>
+    </div>
+    <div class="header-actions">
+      <button id="end-session-btn" class="btn btn-danger btn-sm">End Session</button>
+    </div>
+  </div>
+
+  <!-- State 1: Loading / No Problem -->
+  <div id="state-loading" class="state active">
+    <div class="spinner"></div>
+    <div class="loading-message" id="loading-message">Open a LeetCode problem to begin</div>
+
+    <!-- Manual entry fallback -->
+    <div class="manual-entry" id="manual-entry">
+      <div>
+        <label for="manual-title">Problem title</label>
+        <input id="manual-title" class="input" type="text" placeholder="e.g. Two Sum" />
+      </div>
+      <div>
+        <label for="manual-difficulty">Difficulty</label>
+        <select id="manual-difficulty" class="input">
+          <option value="">Unknown</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+      <div class="manual-entry-actions">
+        <button id="manual-start-btn" class="btn btn-primary" style="flex:1">Start with manual entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- State 2: Problem Loaded, Not Started -->
+  <div id="state-ready" class="state">
+    <div class="ready-problem-info">
+      <div class="ready-problem-title" id="ready-title"></div>
+      <div class="problem-bar-meta">
+        <span id="ready-difficulty-badge" class="difficulty-badge"></span>
+      </div>
+      <div class="ready-tags" id="ready-tags"></div>
+    </div>
+    <button id="start-session-btn" class="btn btn-primary">Start Session</button>
+  </div>
+
+  <!-- State 3: Active Chat Session -->
+  <div id="state-chat" class="state">
+    <!-- Pinned problem bar -->
+    <div class="problem-bar">
+      <div class="problem-bar-title" id="chat-problem-title"></div>
+      <div class="problem-bar-meta">
+        <span id="chat-difficulty-badge" class="difficulty-badge"></span>
+        <div id="chat-tags"></div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages" id="messages"></div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <div class="chat-input-row">
+        <textarea
+          id="chat-input"
+          placeholder="Type your thoughts… (Enter to send, Shift+Enter for newline)"
+          rows="1"
+        ></textarea>
+        <button id="send-btn" class="btn btn-primary">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- State 4: Session Complete / Summary -->
+  <div id="state-summary" class="state">
+
+    <div class="summary-section">
+      <div class="summary-section-title">Session Stats</div>
+      <div class="summary-stats">
+        <div class="stat">
+          <div class="stat-value" id="summary-duration">—</div>
+          <div class="stat-label">Duration</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="summary-hints">0</div>
+          <div class="stat-label">Hints</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-section" id="summary-patterns-section">
+      <div class="summary-section-title">Patterns</div>
+      <div class="pattern-list" id="summary-patterns"></div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-section-title">Session Notes</div>
+      <div class="summary-text" id="summary-notes">Generating summary…</div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-section-title">Result</div>
+      <div class="result-selector">
+        <button class="result-btn" data-result="clean">Clean 🟢</button>
+        <button class="result-btn" data-result="hints">Hints 🟡</button>
+        <button class="result-btn" data-result="failed">Failed 🔴</button>
+      </div>
+    </div>
+
+    <div class="summary-actions">
+      <button id="log-notion-btn" class="btn btn-primary">Log to Notion</button>
+      <div id="notion-log-status"></div>
+      <button id="copy-session-btn" class="btn btn-secondary">Copy Session Data</button>
+      <button id="new-session-btn" class="btn btn-secondary">Start New Session</button>
+    </div>
+
+  </div>
+
+</div>
+<script type="module" src="sidepanel.js"></script>
+</body>
+</html>

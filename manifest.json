@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "DSA Coach",
+  "version": "1.0.0",
+  "description": "Socratic DSA coaching in a side panel while you solve LeetCode problems.",
+
+  "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "host_permissions": ["https://leetcode.com/*", "https://neetcode.io/*"],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/problems/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://neetcode.io/problems/*"],
+      "js": ["content-neetcode.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+
+  "action": {
+    "default_title": "DSA Coach"
+  },
+
+  "icons": {
+    "128": "icons/icon128.png"
+  }
+}
