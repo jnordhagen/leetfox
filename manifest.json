@@ -9,7 +9,7 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none'"
   },
-  "host_permissions": ["https://leetcode.com/*", "https://neetcode.io/*"],
+  "host_permissions": ["https://leetcode.com/*", "https://neetcode.io/*", "https://api.notion.com/*"],
 
   "background": {
     "service_worker": "background.js"

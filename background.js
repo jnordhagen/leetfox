@@ -1,5 +1,13 @@
 // background.js — Service Worker
 
+const NOTION_API_BASE = "https://api.notion.com/v1";
+const NOTION_VERSION = "2022-06-28";
+
+function cleanNotionDbId(id) {
+  // Strip query params Notion appends to shared URLs (e.g. ?v=<view-id>)
+  return (id || "").split("?")[0].trim();
+}
+
 // Open side panel on extension icon click
 chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ tabId: tab.id });
@@ -34,6 +42,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     });
     // Return true to keep the message channel open for async sendResponse
+    return true;
+  }
+
+  if (message.type === "NOTION_VALIDATE") {
+    fetch(`${NOTION_API_BASE}/databases/${cleanNotionDbId(message.notionDbId)}`, {
+      headers: {
+        Authorization: `Bearer ${message.notionToken}`,
+        "Notion-Version": NOTION_VERSION,
+      },
+    })
+      .then((r) => r.json().then((data) => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => sendResponse({ ok, data }))
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (message.type === "NOTION_CREATE_PAGE") {
+    const payload = {
+      ...message.payload,
+      parent: { database_id: cleanNotionDbId(message.payload.parent.database_id) },
+    };
+    fetch(`${NOTION_API_BASE}/pages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${message.notionToken}`,
+        "Content-Type": "application/json",
+        "Notion-Version": NOTION_VERSION,
+      },
+      body: JSON.stringify(payload),
+    })
+      .then((r) => r.json().then((data) => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => sendResponse({ ok, data }))
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
     return true;
   }
 });

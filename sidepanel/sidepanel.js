@@ -1,33 +1,10 @@
-import { parseAnthropicStream } from "./stream.js";
+import { buildSystemPrompt } from "./prompt.js";
+import { callAnthropicStream, callAnthropicOnce, getStoredKeys } from "./api.js";
+import { validateNotionSchema, inferType, createNotionPage, RESULT_LABELS } from "./notion.js";
 
 // ---------- Constants ----------
 
-const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
-const NOTION_API_BASE = "https://api.notion.com/v1";
-const NOTION_VERSION = "2022-06-28";
-const MODEL = "claude-sonnet-4-6";
-const MAX_TOKENS = 1024;
-
 const TAG_REGEX = /\[(HINT|PATTERN:\s*[^\]]+)\]/g;
-
-const DB_SCHEMA = {
-  "Problem":         "title",
-  "LC #":            "number",
-  "Type":            "select",
-  "Pattern":         "multi_select",
-  "Difficulty":      "select",
-  "Last Result":     "select",
-  "Last Done":       "date",
-  "Interval (days)": "number",
-  "Times Reviewed":  "number",
-  "Notes":           "rich_text",
-};
-
-const RESULT_LABELS = {
-  clean:  "Clean 🟢",
-  hints:  "Hints 🟡",
-  failed: "Failed 🔴",
-};
 
 // ---------- State ----------
 
@@ -85,113 +62,6 @@ function escapeHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-// ---------- System Prompt ----------
-
-function buildSystemPrompt(problem) {
-  const tagsStr = (problem.tags || []).join(", ") || "none";
-  const site = problem.source === "neetcode" ? "NeetCode" : "LeetCode";
-  return `You are a Socratic DSA interview coach. The user is practicing on ${site}.
-
-Problem context:
-- Title: ${problem.title}
-- Difficulty: ${problem.difficulty || "Unknown"}
-- Description: ${problem.description || "Not available"}
-- Tags: ${tagsStr}
-
-Your role:
-- Never give away the solution or name the algorithm directly unless the user has been stuck for many exchanges
-- Ask questions that guide the user toward the insight (e.g. "What's the bottleneck in your current approach?", "What data structure would let you look that up in O(1)?")
-- If the user is on the right track, affirm it and push them to the next step
-- If the user is going in the wrong direction, ask a question that reveals the flaw without stating it
-- Keep responses concise — this is a coaching session, not a lecture
-- When the user has the correct approach and has coded it, ask about time and space complexity
-- Use code blocks sparingly and only when the user asks to see something specific
-
-Self-tagging rules (IMPORTANT — follow these exactly):
-- When you give a substantive hint that meaningfully narrows the solution space (not just a generic guiding question, but something that reveals a key constraint, data structure choice, or algorithmic direction), include [HINT] at the very beginning of your message.
-- When you introduce, confirm, or discuss a specific algorithmic pattern or technique, include [PATTERN: <name>] at the beginning of your message. Use lowercase canonical names: "sliding window", "two pointers", "bfs", "dfs", "dynamic programming", "backtracking", "binary search", "heap", "trie", "union find", "topological sort", "monotonic stack", "greedy", "divide and conquer".
-- A message can have both tags. Example: "[HINT][PATTERN: sliding window] What if you maintained..."
-- Most of your messages should have NO tags. Only tag when genuinely narrowing the search space.
-
-Start by asking the user what their initial thoughts are on the problem.`;
-}
-
-// ---------- API Calls ----------
-
-async function getStoredKeys() {
-  return chrome.storage.local.get(["anthropicKey", "notionToken", "notionDbId", "intervalClean", "intervalHints", "intervalFailed"]);
-}
-
-async function callAnthropicStream(messages, systemPrompt, onDelta, onComplete, onError) {
-  const { anthropicKey } = await getStoredKeys();
-  if (!anthropicKey) {
-    onError(new Error("NO_API_KEY"));
-    return;
-  }
-
-  let response;
-  try {
-    response = await fetch(ANTHROPIC_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": anthropicKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        system: systemPrompt,
-        messages,
-        stream: true,
-      }),
-    });
-  } catch (err) {
-    onError(err);
-    return;
-  }
-
-  if (!response.ok) {
-    let errMsg = `API error ${response.status}`;
-    try {
-      const body = await response.json();
-      errMsg = body.error?.message || errMsg;
-    } catch (_) {}
-    if (response.status === 401) errMsg = "Invalid API key — check Settings.";
-    if (response.status === 429) errMsg = "Rate limited — wait a moment and try again.";
-    onError(new Error(errMsg));
-    return;
-  }
-
-  await parseAnthropicStream(response, onDelta, onComplete, onError);
-}
-
-async function callAnthropicOnce(messages, systemPrompt) {
-  const { anthropicKey } = await getStoredKeys();
-  if (!anthropicKey) throw new Error("NO_API_KEY");
-
-  const response = await fetch(ANTHROPIC_API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": anthropicKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 512,
-      system: systemPrompt,
-      messages,
-    }),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const data = await response.json();
-  return data.content?.[0]?.text || "";
 }
 
 // ---------- Tag Processing ----------
@@ -541,39 +411,6 @@ function renderSummaryUI() {
 
 // ---------- Notion Integration ----------
 
-async function validateNotionSchema(notionToken, notionDbId) {
-  const resp = await fetch(`${NOTION_API_BASE}/databases/${notionDbId}`, {
-    headers: {
-      Authorization: `Bearer ${notionToken}`,
-      "Notion-Version": NOTION_VERSION,
-    },
-  });
-  if (!resp.ok) {
-    const body = await resp.json().catch(() => ({}));
-    throw new Error(body.message || `Notion API error: ${resp.status}`);
-  }
-  const db = await resp.json();
-
-  const errors = [];
-  for (const [name, expectedType] of Object.entries(DB_SCHEMA)) {
-    const prop = db.properties[name];
-    if (!prop) {
-      errors.push(`Missing property: "${name}" (expected type: ${expectedType})`);
-    } else if (prop.type !== expectedType) {
-      errors.push(`"${name}" has type "${prop.type}", expected "${expectedType}"`);
-    }
-  }
-  return errors;
-}
-
-function inferType(tags) {
-  const designKeywords = ["design", "system", "architecture"];
-  if ((tags || []).some((t) => designKeywords.some((k) => t.toLowerCase().includes(k)))) {
-    return "System Design";
-  }
-  return "DSA";
-}
-
 async function logToNotion() {
   const statusEl = document.getElementById("notion-log-status");
   const logBtn = document.getElementById("log-notion-btn");
@@ -639,28 +476,11 @@ async function logToNotion() {
   };
 
   try {
-    const resp = await fetch(`${NOTION_API_BASE}/pages`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${notionToken}`,
-        "Content-Type": "application/json",
-        "Notion-Version": NOTION_VERSION,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) {
-      const body = await resp.json().catch(() => ({}));
-      const errMsg = body.message || `Notion error ${resp.status}`;
-      statusEl.innerHTML = `<span class="inline-error">${escapeHtml(errMsg)}<br>Use "Copy Session Data" to save your work.</span>`;
-      logBtn.disabled = false;
-      return;
-    }
-
+    await createNotionPage(payload, notionToken, notionDbId);
     statusEl.innerHTML = `<span class="inline-success">&#10003; Logged to Notion</span>`;
     logBtn.disabled = true;
   } catch (err) {
-    statusEl.innerHTML = `<span class="inline-error">Network error: ${escapeHtml(err.message)}<br>Use "Copy Session Data" to save your work.</span>`;
+    statusEl.innerHTML = `<span class="inline-error">${escapeHtml(err.message)}<br>Use "Copy Session Data" to save your work.</span>`;
     logBtn.disabled = false;
   }
 }
