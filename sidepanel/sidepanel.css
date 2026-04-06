@@ -415,30 +415,19 @@ body {
   border-radius: 10px;
 }
 
-.result-selector {
-  display: flex;
-  gap: 8px;
-}
-
-.result-btn {
-  flex: 1;
-  padding: 9px 6px;
+.score-badge {
+  display: inline-block;
+  padding: 7px 14px;
   border-radius: 8px;
   border: 2px solid var(--border);
-  background: var(--bg-surface2);
-  color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: center;
 }
 
-.result-btn:hover { border-color: var(--text-muted); color: var(--text); }
-
-.result-btn.selected-clean  { border-color: var(--easy); color: var(--easy); background: rgba(0,184,163,0.08); }
-.result-btn.selected-hints  { border-color: var(--medium); color: var(--medium); background: rgba(255,192,30,0.08); }
-.result-btn.selected-failed { border-color: var(--hard); color: var(--hard); background: rgba(255,55,95,0.08); }
+.score-badge.scoring      { color: var(--text-muted); }
+.score-badge.score-easy   { border-color: var(--easy);   color: var(--easy);   background: rgba(0,184,163,0.08); }
+.score-badge.score-medium { border-color: var(--medium); color: var(--medium); background: rgba(255,192,30,0.08); }
+.score-badge.score-hard   { border-color: var(--hard);   color: var(--hard);   background: rgba(255,55,95,0.08); }
 
 .summary-text {
   color: var(--text);

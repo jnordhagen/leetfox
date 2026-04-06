@@ -13,10 +13,20 @@ export const DB_SCHEMA = {
   "Notes":           "rich_text",
 };
 
-export const RESULT_LABELS = {
-  clean:  "Clean 🟢",
-  hints:  "Hints 🟡",
-  failed: "Failed 🔴",
+export const SCORE_LABELS = {
+  5: "Clean 🟢",
+  4: "Good 🟢",
+  3: "Hints 🟡",
+  2: "Struggled 🟠",
+  1: "Failed 🔴",
+};
+
+export const SCORE_INTERVALS = {
+  5: 14,
+  4: 10,
+  3: 7,
+  2: 3,
+  1: 1,
 };
 
 // ---------- Notion API ----------

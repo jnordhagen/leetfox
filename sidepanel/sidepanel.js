@@ -1,6 +1,6 @@
 import { buildSystemPrompt } from "./prompt.js";
 import { callAnthropicStream, callAnthropicOnce, getStoredKeys } from "./api.js";
-import { validateNotionSchema, inferType, createNotionPage, RESULT_LABELS } from "./notion.js";
+import { validateNotionSchema, inferType, createNotionPage, SCORE_LABELS, SCORE_INTERVALS } from "./notion.js";
 
 // ---------- Constants ----------
 
@@ -17,7 +17,7 @@ const DEFAULT_STATE = {
   detectedPatterns: [],
   sessionActive: false,
   sessionComplete: false,
-  result: null,
+  score: null,
   summary: null,
   schemaValidated: false,
 };
@@ -328,40 +328,59 @@ async function endSession() {
   setHidden("end-session-btn", true);
   setHidden("session-header", false);
 
-  // Pre-select result
-  let result = "clean";
-  if (state.hintCount >= 3) result = "failed";
-  else if (state.hintCount >= 1) result = "hints";
-  state.result = result;
-
   showState("state-summary");
   renderSummaryUI();
   await saveState();
 
-  // Generate summary non-blocking
-  generateSummary().then(async (summary) => {
+  // Generate summary + score non-blocking
+  generateSummaryAndScore().then(async ({ score, summary }) => {
+    state.score = score;
     state.summary = summary;
     const notesEl = document.getElementById("summary-notes");
     if (notesEl) notesEl.textContent = summary || "No summary available.";
+    renderScoreBadge(score);
     await saveState();
   }).catch(async () => {
+    state.score = null;
     state.summary = null;
     const notesEl = document.getElementById("summary-notes");
     if (notesEl) notesEl.textContent = "Summary generation failed — review conversation history.";
+    renderScoreBadge(null);
     await saveState();
   });
 }
 
-async function generateSummary() {
-  const summaryMessages = [
-    ...state.messages,
-    {
-      role: "user",
-      content: "Summarize this session in exactly 2 sentences: (1) the key insight or technique for solving this problem, (2) any common trap or gotcha to remember.",
-    },
-  ];
-  const systemPrompt = buildSystemPrompt(state.problem);
-  return await callAnthropicOnce(summaryMessages, systemPrompt);
+async function generateSummaryAndScore() {
+  const prompt = [
+    "Analyze this problem-solving session and return a JSON object with exactly two fields:",
+    '- "score": integer 1–5 where 1=couldn\'t start, 2=needed major hints, 3=needed minor hints, 4=small nudge only, 5=completely clean',
+    '- "summary": exactly 2 sentences: (1) the key insight or technique for solving this problem, (2) any common trap or gotcha to remember.',
+    "Return only the JSON object, no other text.",
+  ].join("\n");
+
+  const messages = [...state.messages, { role: "user", content: prompt }];
+  const raw = await callAnthropicOnce(messages, buildSystemPrompt(state.problem));
+
+  // Parse JSON, stripping any markdown fences the model might add
+  const json = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  const parsed = JSON.parse(json);
+  const score = Math.min(5, Math.max(1, Math.round(Number(parsed.score))));
+  return { score, summary: String(parsed.summary) };
+}
+
+const SCORE_COLORS = { 5: "easy", 4: "easy", 3: "medium", 2: "hard", 1: "hard" };
+
+function renderScoreBadge(score) {
+  const el = document.getElementById("summary-score");
+  if (!el) return;
+  if (!score) {
+    el.textContent = "Scoring…";
+    el.className = "score-badge scoring";
+    return;
+  }
+  const labels = { 5: "5 — Clean", 4: "4 — Good", 3: "3 — Hints", 2: "2 — Struggled", 1: "1 — Failed" };
+  el.textContent = labels[score];
+  el.className = `score-badge score-${SCORE_COLORS[score]}`;
 }
 
 function renderSummaryUI() {
@@ -389,13 +408,8 @@ function renderSummaryUI() {
     setHidden("summary-patterns-section", true);
   }
 
-  // Result selector
-  document.querySelectorAll(".result-btn").forEach((btn) => {
-    btn.classList.remove("selected-clean", "selected-hints", "selected-failed");
-    if (btn.dataset.result === state.result) {
-      btn.classList.add(`selected-${state.result}`);
-    }
-  });
+  // Score badge (updated async when AI finishes)
+  renderScoreBadge(state.score ?? null);
 
   // Summary text placeholder (will be updated when summary arrives)
   const notesEl = document.getElementById("summary-notes");
@@ -445,19 +459,24 @@ async function logToNotion() {
     }
   }
 
-  const intervals = {
-    clean:  intervalClean  ?? 14,
-    hints:  intervalHints  ?? 7,
-    failed: intervalFailed ?? 3,
-  };
-
   const problem = state.problem || {};
   const summaryText =
     state.summary ||
     "Session completed. Summary generation failed — review conversation history.";
   const inferredType = inferType(problem.tags);
-  const computedInterval = intervals[state.result] ?? 7;
-  const resultLabel = RESULT_LABELS[state.result] || RESULT_LABELS.hints;
+
+  // Map score (1-5) to interval, falling back to user-configured overrides for the 3 tiers
+  const score = state.score ?? 3;
+  const defaultIntervals = SCORE_INTERVALS;
+  const overrideIntervals = {
+    5: intervalClean  ?? defaultIntervals[5],
+    4: intervalClean  ?? defaultIntervals[4],
+    3: intervalHints  ?? defaultIntervals[3],
+    2: intervalFailed ?? defaultIntervals[2],
+    1: intervalFailed ?? defaultIntervals[1],
+  };
+  const computedInterval = overrideIntervals[score] ?? 7;
+  const resultLabel = SCORE_LABELS[score] ?? SCORE_LABELS[3];
 
   const payload = {
     parent: { database_id: notionDbId },
@@ -494,7 +513,7 @@ async function copySessionData() {
     endTime: Date.now(),
     hintCount: state.hintCount,
     detectedPatterns: state.detectedPatterns,
-    result: state.result,
+    score: state.score,
     summary: state.summary,
     conversation: state.displayMessages,
   };
@@ -632,18 +651,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const el = e.target;
     el.style.height = "36px";
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
-  });
-
-  // Result selector
-  document.querySelectorAll(".result-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      state.result = btn.dataset.result;
-      document.querySelectorAll(".result-btn").forEach((b) => {
-        b.classList.remove("selected-clean", "selected-hints", "selected-failed");
-      });
-      btn.classList.add(`selected-${state.result}`);
-      await saveState();
-    });
   });
 
   // Log to Notion
