@@ -68,22 +68,40 @@ function scrapeProblem() {
   }
 
   // --- Description ---
-  const descEl = document.querySelector('[data-cy="question-content"]');
-  if (descEl) {
-    data.description = descEl.innerText.trim();
+  const descSelectors = [
+    '[data-cy="question-content"]',
+    '[class*="question-content"]',
+    '[class*="description__"]',
+    '[data-track-load="description_content"]',
+    '[class*="content__"]',
+  ];
+  for (const sel of descSelectors) {
+    const el = document.querySelector(sel);
+    if (el) {
+      const text = el.innerText.trim();
+      if (text.length > 100) {
+        data.description = text;
+        break;
+      }
+    }
   }
+  // Heuristic: find the shallowest div containing problem markers
   if (!data.description) {
-    const candidates = document.querySelectorAll("div");
-    for (const el of candidates) {
-      const cls = (el.className || "").toLowerCase();
-      if (cls.includes("description") || cls.includes("content")) {
-        const text = el.innerText || "";
-        if (text.length > 100) {
-          data.description = text.trim();
-          break;
+    let best = null;
+    for (const el of document.querySelectorAll("div")) {
+      const text = el.innerText || "";
+      if (
+        text.length > 100 &&
+        text.length < 8000 &&
+        (text.includes("Example 1") || text.includes("Example:")) &&
+        (text.includes("Constraints") || text.includes("Input:"))
+      ) {
+        if (!best || text.length < best.length) {
+          best = text;
         }
       }
     }
+    if (best) data.description = best.trim();
   }
 
   // --- Tags ---
@@ -100,7 +118,7 @@ function scrapeProblem() {
 }
 
 function isCompleteEnough(data) {
-  return !!(data.title && data.description);
+  return !!(data.title && (data.description || data.lcNumber));
 }
 
 // --- MutationObserver approach ---
