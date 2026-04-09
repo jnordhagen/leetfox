@@ -11,8 +11,8 @@
   --border: #3a3a3a;
   --text: #e8e8e8;
   --text-muted: #888;
-  --accent: #5b8fff;
-  --accent-hover: #4a7aee;
+  --accent: #e8740c;
+  --accent-hover: #cf650a;
 
   --easy: #00b8a3;
   --medium: #ffc01e;
@@ -270,8 +270,8 @@ body {
 }
 
 .message.user .message-bubble {
-  background: #2a3a5e;
-  color: #c8d8f8;
+  background: #3a2010;
+  color: #f5c89a;
   border-bottom-right-radius: 4px;
 }
 
@@ -408,9 +408,9 @@ body {
 
 .pattern-chip {
   font-size: 11px;
-  background: rgba(91,143,255,0.12);
+  background: rgba(232,116,12,0.12);
   color: var(--accent);
-  border: 1px solid rgba(91,143,255,0.25);
+  border: 1px solid rgba(232,116,12,0.25);
   padding: 3px 8px;
   border-radius: 10px;
 }
