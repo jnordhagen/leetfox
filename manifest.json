@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "DSA Coach",
+  "name": "LeetFox",
   "version": "1.0.0",
   "description": "Socratic DSA coaching in a side panel while you solve LeetCode problems.",
 
