@@ -1,5 +1,9 @@
 // content.js — LeetCode DOM Scraper
 
+// Guard against double-injection (programmatic inject on already-loaded tabs)
+if (window.__dsaCoachLC) throw new Error("DSA Coach: already loaded");
+window.__dsaCoachLC = true;
+
 let scrapeComplete = false;
 
 function slugToTitle(slug) {

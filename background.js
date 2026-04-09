@@ -31,14 +31,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse(null);
         return;
       }
-      const tabId = tabs[0].id;
+      const tab = tabs[0];
+      const tabId = tab.id;
+      const url = tab.url || "";
+      const isLC = url.includes("leetcode.com/problems/");
+      const isNC = url.includes("neetcode.io/problems/");
+
       chrome.tabs.sendMessage(tabId, { type: "GET_PROBLEM_DATA" }, (response) => {
-        if (chrome.runtime.lastError) {
-          // Content script not injected on this tab (not a LeetCode problem page)
-          sendResponse(null);
-        } else {
+        if (!chrome.runtime.lastError) {
           sendResponse(response);
+          return;
         }
+        // Content script not responding — inject it programmatically (handles
+        // tabs that were already open before the extension loaded).
+        if (!isLC && !isNC) {
+          sendResponse(null);
+          return;
+        }
+        const file = isLC ? "content.js" : "content-neetcode.js";
+        chrome.scripting.executeScript({ target: { tabId }, files: [file] }, () => {
+          if (chrome.runtime.lastError) {
+            sendResponse(null);
+            return;
+          }
+          chrome.tabs.sendMessage(tabId, { type: "GET_PROBLEM_DATA" }, (response2) => {
+            if (chrome.runtime.lastError) {
+              sendResponse(null);
+            } else {
+              sendResponse(response2);
+            }
+          });
+        });
       });
     });
     // Return true to keep the message channel open for async sendResponse

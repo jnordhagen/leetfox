@@ -1,5 +1,9 @@
 // content-neetcode.js — NeetCode DOM Scraper
 
+// Guard against double-injection (programmatic inject on already-loaded tabs)
+if (window.__dsaCoachNC) throw new Error("DSA Coach: already loaded");
+window.__dsaCoachNC = true;
+
 let scrapeComplete = false;
 
 function slugToTitle(slug) {
