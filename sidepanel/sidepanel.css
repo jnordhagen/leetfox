@@ -500,6 +500,18 @@ body {
 }
 .btn-icon:hover { background: var(--bg-surface2); color: var(--text); }
 
+#mic-btn.recording {
+  color: var(--hard);
+  border-color: rgba(255,55,95,0.4);
+  background: rgba(255,55,95,0.1);
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
 /* ---- Inputs ---- */
 .input {
   width: 100%;

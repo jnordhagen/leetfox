@@ -205,6 +205,7 @@ async function startSession() {
   };
 
   setHidden("session-header", false);
+  setHidden("end-session-btn", false);
   showState("state-chat");
   document.getElementById("messages").innerHTML = "";
 
@@ -689,6 +690,85 @@ document.addEventListener("DOMContentLoaded", () => {
   // Settings link in banner
   bindSettingsLink();
 
+  // Voice input
+  initVoiceInput();
+
   // Run init
   init();
 });
+
+// ---------- Voice Input ----------
+
+function initVoiceInput() {
+  const micBtn = document.getElementById("mic-btn");
+  if (!micBtn) return;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    micBtn.style.display = "none";
+    return;
+  }
+
+  let recognition = null;
+  let listening = false;
+
+  function setListening(val) {
+    listening = val;
+    micBtn.classList.toggle("recording", val);
+    micBtn.title = val ? "Stop recording" : "Voice input";
+  }
+
+  function startRecognition() {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.addEventListener("start", () => setListening(true));
+    recognition.addEventListener("end", () => setListening(false));
+    recognition.addEventListener("error", (e) => {
+      console.error("[voice] recognition error:", e.error);
+      setListening(false);
+    });
+    recognition.addEventListener("result", (e) => {
+      const transcript = Array.from(e.results)
+        .map((r) => r[0].transcript)
+        .join(" ")
+        .trim();
+      if (!transcript) return;
+      const input = document.getElementById("chat-input");
+      input.value = transcript;
+      input.style.height = "36px";
+      input.style.height = Math.min(input.scrollHeight, 120) + "px";
+      sendMessage();
+    });
+
+    recognition.start();
+  }
+
+  micBtn.addEventListener("click", async () => {
+    if (listening) {
+      recognition?.stop();
+      return;
+    }
+
+    // Check if mic permission was granted via the options page
+    const { micEnabled } = await chrome.storage.local.get("micEnabled");
+    if (!micEnabled) {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+
+    // Prime getUserMedia so the extension origin has an active mic grant,
+    // then hand off to webkitSpeechRecognition for transcription
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+    } catch {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+
+    startRecognition();
+  });
+}

@@ -48,4 +48,36 @@ async function saveSettings() {
 
 document.getElementById("save-btn").addEventListener("click", saveSettings);
 
+// ---------- Mic permission ----------
+
+const micGrantBtn = document.getElementById("mic-grant-btn");
+const micStatus = document.getElementById("mic-status");
+
+async function checkMicStatus() {
+  const { micEnabled } = await chrome.storage.local.get("micEnabled");
+  if (micEnabled) {
+    micStatus.textContent = "Granted";
+    micStatus.style.color = "#00b8a3";
+    micGrantBtn.textContent = "Re-enable Microphone";
+  } else {
+    micStatus.textContent = "Not granted";
+    micStatus.style.color = "#888";
+  }
+}
+
+micGrantBtn.addEventListener("click", async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((t) => t.stop());
+    await chrome.storage.local.set({ micEnabled: true });
+    micStatus.textContent = "Granted";
+    micStatus.style.color = "#00b8a3";
+    micGrantBtn.textContent = "Re-enable Microphone";
+  } catch (err) {
+    micStatus.textContent = "Denied — check your browser/OS microphone settings";
+    micStatus.style.color = "#ff375f";
+  }
+});
+
+checkMicStatus();
 loadSettings();
