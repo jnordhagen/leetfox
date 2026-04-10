@@ -9,8 +9,8 @@ A Chrome extension that provides Socratic DSA coaching in a side panel while you
 - **Manual entry fallback** — if scraping fails, enter the problem title and difficulty by hand
 - **Streaming responses** — replies appear token-by-token, with a typing indicator
 - **Voice input** — speak your thoughts instead of typing (uses Web Speech API)
-- **Session summary** — on session end, Claude generates a 2-sentence summary of the key insight and any common traps
-- **Performance score** — 1–5 rating based on how many hints you needed and how cleanly you solved it
+- **Session summary** — on session end, Claude generates a personalized 2-sentence retrospective: what you did well or struggled with in this specific session, and one concrete thing to focus on next time
+- **Performance score** — 1–5 rating calibrated to your actual hint count and how independently you reached the solution
 - **Notion logging** — posts a structured record to your Notion database with problem metadata, detected patterns, score, and notes
 - **Spaced repetition intervals** — configurable review intervals per performance tier (clean / hints needed / failed), written directly into the Notion record
 - **Session persistence** — session state survives panel closes and page reloads via `chrome.storage.session`

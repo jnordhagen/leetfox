@@ -346,10 +346,28 @@ async function endSession() {
 }
 
 async function generateSummaryAndScore() {
+  const durationMs = Date.now() - state.startTime;
+  const durationMin = Math.floor(durationMs / 60000);
+  const durationSec = Math.floor((durationMs % 60000) / 1000);
+  const durationStr = durationMin > 0 ? `${durationMin}m ${durationSec}s` : `${durationSec}s`;
+  const patternsStr = state.detectedPatterns.length ? state.detectedPatterns.join(", ") : "none";
+
   const prompt = [
-    "Analyze this problem-solving session and return a JSON object with exactly two fields:",
-    '- "score": integer 1–5 where 1=couldn\'t start, 2=needed major hints, 3=needed minor hints, 4=small nudge only, 5=completely clean',
-    '- "summary": exactly 2 sentences: (1) the key insight or technique for solving this problem, (2) any common trap or gotcha to remember.',
+    "Based on the conversation above, analyze this problem-solving session using the following session stats:",
+    `- Duration: ${durationStr}`,
+    `- Hints given: ${state.hintCount}`,
+    `- Patterns discussed: ${patternsStr}`,
+    "",
+    "Return a JSON object with exactly two fields:",
+    '- "score": integer 1–5 based on how independently the user solved it:',
+    "  5 = solved independently with no hints,",
+    "  4 = needed at most one small nudge,",
+    "  3 = needed a few hints but found the approach,",
+    "  2 = struggled significantly, needed major direction,",
+    "  1 = couldn't reach a working solution.",
+    '- "summary": exactly 2 sentences, personalized to this session:',
+    "  (1) What the user did well or where they got stuck specifically in this session.",
+    "  (2) One concrete thing they should focus on or remember next time they see this problem or a similar one.",
     "Return only the JSON object, no other text.",
   ].join("\n");
 
