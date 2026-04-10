@@ -22,6 +22,33 @@
   --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* ---- Light mode overrides ---- */
+[data-theme="light"] {
+  --bg: #f0f0f0;
+  --bg-surface: #ffffff;
+  --bg-surface2: #e4e4e4;
+  --border: #cccccc;
+  --text: #1a1a1a;
+  --text-muted: #666666;
+}
+
+[data-theme="light"] .message.user .message-bubble {
+  background: rgba(232,116,12,0.15);
+  color: #8a3e00;
+}
+
+[data-theme="light"] .message-bubble code {
+  background: rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .message-bubble pre {
+  background: rgba(0,0,0,0.05);
+}
+
+[data-theme="light"] .message-bubble strong {
+  color: #000;
+}
+
 html, body {
   height: 100%;
   width: 100%;

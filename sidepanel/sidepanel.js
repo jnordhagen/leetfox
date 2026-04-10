@@ -689,6 +689,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Theme toggle
+  initTheme();
+  document.getElementById("theme-btn")?.addEventListener("click", toggleTheme);
+
   // Settings button in header
   document.getElementById("settings-btn")?.addEventListener("click", openSettings);
 
@@ -701,6 +705,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // Run init
   init();
 });
+
+// ---------- Theme ----------
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  document.getElementById("theme-icon-sun")?.classList.toggle("hidden", theme === "light");
+  document.getElementById("theme-icon-moon")?.classList.toggle("hidden", theme === "dark");
+}
+
+async function initTheme() {
+  const { theme } = await chrome.storage.local.get("theme");
+  applyTheme(theme === "light" ? "light" : "dark");
+}
+
+async function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme");
+  const next = current === "light" ? "dark" : "light";
+  applyTheme(next);
+  await chrome.storage.local.set({ theme: next });
+}
 
 // ---------- Voice Input ----------
 
