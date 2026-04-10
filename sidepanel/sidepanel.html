@@ -47,6 +47,7 @@
         </select>
       </div>
       <div class="manual-entry-actions">
+        <button id="retry-scrape-btn" class="btn btn-secondary">Retry</button>
         <button id="manual-start-btn" class="btn btn-primary" style="flex:1">Start with manual entry</button>
       </div>
     </div>
@@ -83,10 +84,16 @@
       <div class="chat-input-row">
         <textarea
           id="chat-input"
-          placeholder="Type your thoughts… (Enter to send, Shift+Enter for newline)"
+          placeholder="Type your thoughts… (Shift+Enter for newline)"
           rows="1"
         ></textarea>
-        <button id="mic-btn" class="btn btn-icon" title="Voice input" aria-label="Voice input">🎤</button>
+        <button id="mic-btn" class="btn btn-icon" title="Voice input" aria-label="Voice input">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+          </svg>
+        </button>
         <button id="send-btn" class="btn btn-primary">Send</button>
       </div>
     </div>

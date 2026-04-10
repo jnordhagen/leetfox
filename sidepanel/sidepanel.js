@@ -302,7 +302,7 @@ async function sendMessage() {
   if (!text || !state.sessionActive) return;
 
   input.value = "";
-  input.style.height = "36px";
+  input.style.height = "";
 
   appendMessage("user", escapeHtml(text).replace(/\n/g, "<br>"));
   state.messages.push({ role: "user", content: text });
@@ -633,6 +633,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Start session
   document.getElementById("start-session-btn")?.addEventListener("click", startSession);
 
+  // Retry scraping
+  document.getElementById("retry-scrape-btn")?.addEventListener("click", () => {
+    document.getElementById("manual-entry").classList.remove("visible");
+    document.getElementById("loading-message").textContent = "Reading problem…";
+    document.getElementById("loading-message").style.marginBottom = "";
+    showState("state-loading");
+    chrome.runtime.sendMessage({ type: "GET_PROBLEM_DATA" }, (response) => {
+      if (chrome.runtime.lastError || !response) { handleNoProblem(); return; }
+      const data = response.data || response;
+      if (!data || !data.title) { handleNoProblem(); return; }
+      handleProblemData(data);
+    });
+  });
+
   // End session
   document.getElementById("end-session-btn")?.addEventListener("click", endSession);
 
@@ -647,12 +661,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Auto-resize textarea
-  document.getElementById("chat-input")?.addEventListener("input", (e) => {
-    const el = e.target;
-    el.style.height = "36px";
-    el.style.height = Math.min(el.scrollHeight, 120) + "px";
-  });
 
   // Log to Notion
   document.getElementById("log-notion-btn")?.addEventListener("click", logToNotion);
