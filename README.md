@@ -1,4 +1,4 @@
-<img width="512" height="512" alt="leetfox" src="https://github.com/user-attachments/assets/b8ccd664-32e7-421c-b219-5927dfcaff1e" />
+<img width="128" height="128" alt="leetfox" src="https://github.com/user-attachments/assets/c1db5b85-bb5f-4ebb-9def-ab7a25f86e86" />
 # LeetFox 🦊
 
 A Chrome extension that provides Socratic DSA coaching in a side panel while you solve LeetCode and NeetCode problems. Instead of giving you answers, it guides you toward them through questions — then logs the session to Notion for spaced repetition review.
