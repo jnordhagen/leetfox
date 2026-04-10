@@ -733,6 +733,18 @@ function applyTheme(theme) {
 }
 
 async function initTheme() {
+  // Sync to the LeetCode/NeetCode page theme if detectable
+  const pageTheme = await new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "GET_PAGE_THEME" }, (response) => {
+      resolve(chrome.runtime.lastError ? null : response?.theme ?? null);
+    });
+  });
+  if (pageTheme) {
+    applyTheme(pageTheme);
+    chrome.storage.local.set({ theme: pageTheme });
+    return;
+  }
+  // Fall back to stored preference
   const { theme } = await chrome.storage.local.get("theme");
   applyTheme(theme === "light" ? "light" : "dark");
 }

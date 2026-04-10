@@ -81,3 +81,12 @@ micGrantBtn.addEventListener("click", async () => {
 
 checkMicStatus();
 loadSettings();
+
+// ---------- Theme ----------
+
+async function initTheme() {
+  const { theme } = await chrome.storage.local.get("theme");
+  document.documentElement.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+}
+
+initTheme();

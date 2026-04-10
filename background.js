@@ -68,6 +68,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === "GET_PAGE_THEME") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs?.[0];
+      if (!tab) { sendResponse({ theme: null }); return; }
+      const url = tab.url || "";
+      if (!url.includes("leetcode.com") && !url.includes("neetcode.io")) {
+        sendResponse({ theme: null }); return;
+      }
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: tab.id },
+          func: () => {
+            const html = document.documentElement;
+            if (html.classList.contains("dark")) return "dark";
+            if (html.classList.contains("light")) return "light";
+            const dt = html.getAttribute("data-theme") || html.getAttribute("data-color-scheme");
+            if (dt === "dark" || dt === "light") return dt;
+            // Luminance fallback
+            const bg = getComputedStyle(html).backgroundColor;
+            const m = bg.match(/\d+/g);
+            if (m) {
+              const [r, g, b] = m.map(Number);
+              return (0.299 * r + 0.587 * g + 0.114 * b) < 128 ? "dark" : "light";
+            }
+            return null;
+          },
+        },
+        (results) => {
+          if (chrome.runtime.lastError || !results?.[0]) {
+            sendResponse({ theme: null });
+          } else {
+            sendResponse({ theme: results[0].result });
+          }
+        }
+      );
+    });
+    return true;
+  }
+
   if (message.type === "NOTION_VALIDATE") {
     fetch(`${NOTION_API_BASE}/databases/${cleanNotionDbId(message.notionDbId)}`, {
       headers: {
