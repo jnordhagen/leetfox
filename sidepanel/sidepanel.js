@@ -182,12 +182,6 @@ function applyProblemToUI(problem) {
   renderDifficultyBadge(document.getElementById("chat-difficulty-badge"), problem.difficulty);
   renderTagChips(document.getElementById("chat-tags"), problem.tags);
 
-  // Session header
-  const headerTitle = document.getElementById("header-problem-title");
-  if (headerTitle) {
-    const num = problem.lcNumber ? `#${problem.lcNumber} ` : "";
-    headerTitle.textContent = num + (problem.title || "DSA Coach");
-  }
 }
 
 // ---------- Session Start ----------
@@ -694,6 +688,9 @@ document.addEventListener("DOMContentLoaded", () => {
       scrapedAt: Date.now(),
     });
   });
+
+  // Settings button in header
+  document.getElementById("settings-btn")?.addEventListener("click", openSettings);
 
   // Settings link in banner
   bindSettingsLink();
