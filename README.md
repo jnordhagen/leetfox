@@ -28,7 +28,7 @@ A Chrome extension that provides Socratic DSA coaching in a side panel while you
 ### 2. Add your Anthropic API key
 
 1. Click the LeetFox icon, then open **Settings**
-2. Paste your API key from [console.anthropic.com](https://console.anthropic.com) — it starts with `sk-ant-`
+2. Paste your API key from [console.anthropic.com](https://console.anthropic.com) (starts with `sk-ant-`)
 
 ### 3. Set up Notion (optional)
 
