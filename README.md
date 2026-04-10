@@ -6,21 +6,18 @@
     ╚══════╝╚══════╝╚══════╝   ╚═╝   ╚═╝      ╚═════╝ ╚═╝  ╚═╝
 # 🦊
 
-A Chrome extension that provides Socratic DSA coaching in a side panel while you solve LeetCode and NeetCode problems. Instead of giving you answers, it guides you toward them through questions — then logs the session to Notion for spaced repetition review.
+A Chrome extension that provides Socratic DSA coaching in a side panel while you solve LeetCode and NeetCode problems. Instead of giving you answers, it guides you toward them through questions, then logs the session to Notion for spaced repetition review.
 
 ## Features
 
 - **Socratic coaching** — Claude asks questions and gives nudges rather than spoiling solutions
 - **Automatic problem detection** — reads the problem title, difficulty, and tags from the active LeetCode or NeetCode page
 - **Manual entry fallback** — if scraping fails, enter the problem title and difficulty by hand
-- **Streaming responses** — replies appear token-by-token, with a typing indicator
 - **Voice input** — speak your thoughts instead of typing (uses Web Speech API)
 - **Session summary** — on session end, Claude generates a personalized 2-sentence retrospective: what you did well or struggled with in this specific session, and one concrete thing to focus on next time
 - **Performance score** — 1–5 rating calibrated to your actual hint count and how independently you reached the solution
 - **Notion logging** — posts a structured record to your Notion database with problem metadata, detected patterns, score, and notes
-- **Spaced repetition intervals** — configurable review intervals per performance tier (clean / hints needed / failed), written directly into the Notion record
-- **Session persistence** — session state survives panel closes and page reloads via `chrome.storage.session`
-- **Copy session data** — export the full conversation and stats as JSON if Notion logging fails
+- **Spaced repetition intervals** — configurable review intervals per performance score
 
 ## Setup
 
