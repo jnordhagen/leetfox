@@ -397,6 +397,11 @@ function renderScoreBadge(score) {
 }
 
 function renderSummaryUI() {
+  // Problem name + difficulty
+  const problem = state.problem || {};
+  document.getElementById("summary-problem-name").textContent = problem.title || "Unknown Problem";
+  renderDifficultyBadge(document.getElementById("summary-difficulty-badge"), problem.difficulty);
+
   // Duration
   const durationMs = Date.now() - state.startTime;
   const minutes = Math.floor(durationMs / 60000);
@@ -805,7 +810,7 @@ function initVoiceInput() {
     recognition.start();
   }
 
-  micBtn.addEventListener("click", async () => {
+  async function toggleVoice() {
     if (listening) {
       recognition?.stop();
       return;
@@ -829,5 +834,17 @@ function initVoiceInput() {
     }
 
     startRecognition();
+  }
+
+  micBtn.addEventListener("click", toggleVoice);
+
+  // Keybinding: Ctrl+M (Cmd+M on Mac) to toggle voice input
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "m") {
+      // Only active when the chat state is visible
+      if (document.getElementById("state-chat")?.classList.contains("hidden")) return;
+      e.preventDefault();
+      toggleVoice();
+    }
   });
 }

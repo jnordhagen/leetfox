@@ -383,6 +383,24 @@ body {
 #chat-input::placeholder { color: var(--text-muted); }
 
 /* State 4 - Summary */
+.summary-problem-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 2px;
+}
+
+.summary-problem-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #state-summary {
   overflow-y: auto;
   padding: 16px 12px;

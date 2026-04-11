@@ -103,7 +103,7 @@
       <div class="chat-input-row">
         <textarea
           id="chat-input"
-          placeholder="Type your thoughts… (Shift+Enter for newline)"
+          placeholder="Type your thoughts… (Shift+Enter for newline, Ctrl+M to talk)"
           rows="1"
         ></textarea>
         <button id="mic-btn" class="btn btn-icon" title="Voice input" aria-label="Voice input">
@@ -120,6 +120,11 @@
 
   <!-- State 4: Session Complete / Summary -->
   <div id="state-summary" class="state">
+
+    <div class="summary-problem-header">
+      <span id="summary-problem-name" class="summary-problem-name"></span>
+      <span id="summary-difficulty-badge" class="difficulty-badge"></span>
+    </div>
 
     <div class="summary-section">
       <div class="summary-section-title">Session Stats</div>
