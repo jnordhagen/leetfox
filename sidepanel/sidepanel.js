@@ -439,6 +439,7 @@ function renderSummaryUI() {
 
   // Notion log status reset
   document.getElementById("notion-log-status").innerHTML = "";
+  document.getElementById("log-notion-btn").disabled = false;
 }
 
 // ---------- Notion Integration ----------
